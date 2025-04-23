@@ -18,12 +18,13 @@
 - **Auth**: Supabase OAuth (Google, GitHub)
 - **Storage**: JSON (Excalidraw diagrams), Markdown (text)
 
-## Screenshots
-# Landing Page
-<img width="1269" alt="Screenshot 2025-04-15 at 6 49 10 PM" src="https://github.com/user-attachments/assets/2fff88cb-5490-49bb-843c-cfb0fb820bc0" />
+## DEMO
+https://github.com/user-attachments/assets/8dbb0e2e-dca6-4f06-b1fe-65907611f7d8
 
-# Problem Page
-<img width="1440" alt="Screenshot 2025-04-15 at 6 50 01 PM" src="https://github.com/user-attachments/assets/e92e6fda-c3c9-4cc2-93f4-10117bf28ee2" />
+
+
+
+
 
 
 
