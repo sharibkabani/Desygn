@@ -13,6 +13,22 @@ import (
 	"github.com/sharibkabani/desygn-backend/handlers"
 )
 
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
+}
+
 func main() {
 	// Load .env variables (e.g., database URL, Gemini API key)
 	err := godotenv.Load()
@@ -36,8 +52,6 @@ func main() {
 
 	// Register your endpoints
 	router.POST("/submit", handlers.SubmitHandler)
-	router.GET("/submissions/:userId", handlers.GetUserSubmissions)
-	router.POST("/sync-user", handlers.SyncUserHandler)
 
 	// Add a route to test DB connection
 	router.GET("/dbtest", func(c *gin.Context) {
