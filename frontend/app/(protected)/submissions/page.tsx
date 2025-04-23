@@ -9,7 +9,20 @@ import { Filter, SortDesc, Calendar, Trophy } from "lucide-react";
 import SubmissionCard from "@/components/SubmissionCard";
 import { supabase } from "@/utils/supabase";
 import { User } from "@/models/User";
-import { Submission } from "@/models/Submission";
+
+interface Submission {
+  id: string;
+  problem_id: string;
+  problem_title: string;
+  feedback?: {
+    score?: number;
+    strengths?: string[];
+    improvements?: string[];
+  };
+  created_at: string;
+  is_draft: boolean;
+  user_id: string;
+}
 
 type SortOption = "newest" | "oldest" | "highest" | "lowest";
 type FilterOption =

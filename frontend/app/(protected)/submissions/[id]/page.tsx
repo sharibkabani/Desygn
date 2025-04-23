@@ -10,8 +10,22 @@ import { supabase } from "@/utils/supabase";
 import "@excalidraw/excalidraw/index.css";
 import { Excalidraw } from "@excalidraw/excalidraw";
 import { FullPageLoading } from "@/components/Loading";
-import { Submission } from "@/models/Submission";
 import { User } from "@/models/User";
+
+interface Submission {
+  id: string;
+  problemId: string;
+  problemTitle: string;
+  writtenExplanation: string[];
+  diagram_data: JSON[];
+  feedback: {
+    score: number;
+    strengths: string[];
+    improvements: string[];
+  };
+  submittedAt: string;
+  user_id: string;
+}
 
 export default function SubmissionDetail() {
   const params = useParams();
