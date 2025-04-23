@@ -8,27 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Filter, SortDesc, Calendar, Trophy } from "lucide-react";
 import SubmissionCard from "@/components/SubmissionCard";
 import { supabase } from "@/utils/supabase";
-
-interface User {
-  avatar_url: string | null;
-  full_name: string;
-  email: string;
-  id: string;
-}
-
-interface Submission {
-  id: string;
-  problem_id: string;
-  problem_title: string;
-  feedback?: {
-    score?: number;
-    strengths?: string[];
-    improvements?: string[];
-  };
-  created_at: string;
-  is_draft: boolean;
-  user_id: string;
-}
+import { User } from "@/models/User";
+import { Submission } from "@/models/Submission";
 
 type SortOption = "newest" | "oldest" | "highest" | "lowest";
 type FilterOption =

@@ -17,24 +17,8 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Excalidraw } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
 import { useDebounce } from "@/utils/useDebounce";
-
-interface Problem {
-  id: number;
-  title: string;
-  description: string;
-  difficulty: string;
-  tags: string[];
-  is_published: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-interface User {
-  avatar_url: string | null;
-  full_name: string;
-  email: string;
-  id: string;
-}
+import { Problem } from "@/models/Problem";
+import { User } from "@/models/User";
 
 const defaultMarkdownContent = `# 🎩 Problem Overview
 

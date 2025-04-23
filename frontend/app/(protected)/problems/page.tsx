@@ -9,29 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Filter, SortDesc } from "lucide-react";
 import Link from "next/link";
-
-// Define types based on the database schema
-interface Problem {
-  id: number;
-  title: string;
-  description: string;
-  difficulty: string;
-  tags: string[];
-  is_published: boolean;
-  created_at: string;
-  updated_at: string;
-  userSubmission?: {
-    id: string;
-    is_draft: boolean;
-  } | null;
-}
-
-interface User {
-  avatar_url: string | null;
-  full_name: string;
-  email: string;
-  id: string;
-}
+import { Problem } from "@/models/Problem";
+import { User } from "@/models/User";
 
 export default function Problems() {
   const [user, setUser] = useState<User | null>(null);
