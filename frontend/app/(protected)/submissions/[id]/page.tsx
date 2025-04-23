@@ -17,7 +17,15 @@ interface Submission {
   problemId: string;
   problemTitle: string;
   writtenExplanation: string[];
-  diagram_data: JSON[];
+  diagram_data: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    elements: any[];
+    appState: {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      collaborators: Map<any, any>;
+      theme: string;
+    };
+  };
   feedback: {
     score: number;
     strengths: string[];
@@ -25,6 +33,7 @@ interface Submission {
   };
   submittedAt: string;
   user_id: string;
+  problems?: { title: string } | { title: string }[];
 }
 
 export default function SubmissionDetail() {
@@ -36,7 +45,13 @@ export default function SubmissionDetail() {
     problemId: "",
     problemTitle: "",
     writtenExplanation: [],
-    diagram_data: [],
+    diagram_data: {
+      elements: [],
+      appState: {
+        collaborators: new Map(),
+        theme: "dark",
+      },
+    },
     feedback: {
       score: 0,
       strengths: [],
@@ -44,6 +59,7 @@ export default function SubmissionDetail() {
     },
     submittedAt: "",
     user_id: "",
+    problems: [],
   });
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -90,7 +106,11 @@ export default function SubmissionDetail() {
         const formattedSubmission: Submission = {
           ...data,
           problemId: data.problem_id,
-          problemTitle: data.problems?.title || "Unknown Problem", // Access as a single object
+          problemTitle: Array.isArray(data.problems)
+            ? (data.problems as { title: string }[])[0]?.title ||
+              "Unknown Problem"
+            : (data.problems as { title: string })?.title || "Unknown Problem",
+
           writtenExplanation: data.solution_text.split("\n"),
           diagram_data: data.diagram_data || [],
           feedback: {

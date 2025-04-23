@@ -22,6 +22,7 @@ interface Submission {
   created_at: string;
   is_draft: boolean;
   user_id: string;
+  problems?: { title: string } | { title: string }[]; // Explicitly define the type
 }
 
 type SortOption = "newest" | "oldest" | "highest" | "lowest";
@@ -88,7 +89,10 @@ export default function MySubmissions() {
         const formattedSubmissions = submissionsData.map((submission) => ({
           id: submission.id,
           problem_id: submission.problem_id,
-          problem_title: submission.problems?.title || "Unknown Problem",
+          problem_title: Array.isArray(submission.problems)
+            ? submission.problems[0]?.title || "Unknown Problem"
+            : (submission.problems as { title: string } | undefined)?.title ||
+              "Unknown Problem",
           feedback: submission.feedback,
           created_at: submission.created_at,
           is_draft: submission.is_draft,
