@@ -90,7 +90,7 @@ export default function ProblemDetail() {
       // Show loading screen
       setLoading(true);
 
-      const res = await fetch("http://localhost:8080/submit", {
+      const res = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + "/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
