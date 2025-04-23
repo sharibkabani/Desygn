@@ -337,7 +337,7 @@ export default function ProblemDetail() {
           <ResizablePanel defaultSize={60} minSize={30}>
             <div className="h-full bg-[#252830] overflow-hidden flex flex-col">
               <div className="text-white font-medium py-2 px-4 border-b border-white/10">
-                System Design
+                Diagram
               </div>
               <div className="flex-1 overflow-y-auto">
                 <Excalidraw
