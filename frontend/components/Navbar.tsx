@@ -1,6 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 
 export default function Navbar() {
   return (
@@ -15,9 +13,6 @@ export default function Navbar() {
         />
         <span className="text-2xl font-bold">Desygn</span>
       </div>
-      <Button variant="ghost" asChild>
-        <Link href="/login">Login</Link>
-      </Button>
     </nav>
   );
 }

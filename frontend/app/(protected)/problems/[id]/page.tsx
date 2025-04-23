@@ -1,5 +1,3 @@
-// This is the updated ProblemDetail component with auto-saving (debounced) using `is_draft` column from submissions
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -15,7 +13,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Excalidraw } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
 import { useDebounce } from "@/utils/useDebounce";
@@ -92,6 +90,54 @@ export default function ProblemDetail() {
   const debouncedMarkdown = useDebounce(markdownContent, 1000);
   const debouncedDrawing = useDebounce(excalidrawContent, 1000);
 
+  async function handleSubmit({
+    userId,
+    problemId,
+    solutionText,
+    excalidrawContent,
+  }: {
+    userId: string;
+    problemId: number;
+    solutionText: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    excalidrawContent: any;
+  }) {
+    try {
+      // Show loading screen
+      setLoading(true);
+
+      const res = await fetch("http://localhost:8080/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: userId,
+          problem_id: problemId,
+          solution_text: solutionText,
+          diagram_data: excalidrawContent,
+        }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        console.error("Error submitting:", error);
+        alert("Submission failed: " + error.error);
+        return;
+      }
+
+      // Parse the response to get the submission ID
+      const { submission_id } = await res.json();
+
+      // Navigate to the submission page
+      router.push(`/submissions/${submission_id}`);
+    } catch (err) {
+      console.error("Submission error:", err);
+      alert("Something went wrong during submission");
+    } finally {
+      // Hide loading screen
+      // setLoading(false);
+    }
+  }
+
   useEffect(() => {
     const fetchProblemAndUser = async () => {
       try {
@@ -123,15 +169,18 @@ export default function ProblemDetail() {
 
         setProblem(problemData);
 
+        // Fetch the user's submission for this problem (draft or completed)
         const { data: submission } = await supabase
           .from("submissions")
-          .select("solution_text, diagram_data")
+          .select("solution_text, diagram_data, is_draft")
           .eq("problem_id", params.id)
           .eq("user_id", userData.user.id)
-          .eq("is_draft", true)
+          .order("created_at", { ascending: false }) // Get the latest submission
+          .limit(1)
           .single();
 
         if (submission) {
+          // Load the previous submission data
           setMarkdownContent(submission.solution_text || "");
           if (submission.diagram_data) {
             try {
@@ -141,6 +190,7 @@ export default function ProblemDetail() {
             }
           }
         } else {
+          // No previous submission, load default content
           setMarkdownContent(defaultMarkdownContent);
         }
       } catch (e) {
@@ -158,6 +208,20 @@ export default function ProblemDetail() {
 
     const saveDraft = async () => {
       try {
+        // Check if the current submission is a draft
+        const { data: existingSubmission } = await supabase
+          .from("submissions")
+          .select("is_draft")
+          .eq("problem_id", problem.id)
+          .eq("user_id", user.id)
+          .single();
+
+        if (existingSubmission && !existingSubmission.is_draft) {
+          // Do not overwrite completed submissions
+          return;
+        }
+
+        // Save or update the draft
         await supabase.from("submissions").upsert(
           {
             user_id: user.id,
@@ -190,7 +254,7 @@ export default function ProblemDetail() {
     }
   };
 
-  if (loading) return <FullPageLoading message="Loading problem..." />;
+  if (loading) return <FullPageLoading />;
   if (!user || !problem) return null;
 
   return (
@@ -232,6 +296,21 @@ export default function ProblemDetail() {
               </div>
             </div>
             {/* Submit Button */}
+            <Button
+              variant="default"
+              size="sm"
+              className="text-white p-3 h-auto cursor-pointer bg-green-700 hover:bg-green-600 font-bold"
+              onClick={() =>
+                handleSubmit({
+                  userId: user.id,
+                  problemId: problem.id,
+                  solutionText: markdownContent,
+                  excalidrawContent: excalidrawContent ?? [],
+                })
+              }
+            >
+              <ArrowRight className="w-4 h-4 mr-1" /> Submit Solution
+            </Button>
           </div>
         </div>
       </div>
@@ -268,6 +347,7 @@ export default function ProblemDetail() {
                       ...excalidrawContent?.appState,
                       collaborators: new Map(), // ✅ ensures correct type
                     },
+                    scrollToContent: true,
                   }}
                   onChange={(elements, appState) => {
                     const newData = {

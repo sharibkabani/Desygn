@@ -41,20 +41,14 @@ export default function LoggedInNavbar({
       {/* Navigation Links */}
       <div className="hidden md:flex items-center gap-8">
         <Link
-          href="/dashboard"
-          className="text-white/80 hover:text-white hover:bg-white/10 px-3 py-2 rounded-md"
-        >
-          Dashboard
-        </Link>
-        <Link
           href="/problems"
-          className="text-white/80 hover:text-white hover:bg-white/10 px-3 py-2 rounded-md"
+          className="text-white/80 hover:text-white hover:bg-white/10 px-3 py-2 rounded-md font-bold"
         >
           Problems
         </Link>
         <Link
           href="/submissions"
-          className="text-white/80 hover:text-white hover:bg-white/10 px-3 py-2 rounded-md"
+          className="text-white/80 hover:text-white hover:bg-white/10 px-3 py-2 rounded-md font-bold"
         >
           Submissions
         </Link>
@@ -88,12 +82,6 @@ export default function LoggedInNavbar({
               <p className="text-xs text-white/60 truncate">{user.email}</p>
             </div>
             <div className="py-1">
-              <button
-                onClick={() => router.push("/settings")}
-                className="block w-full text-left px-4 py-2 text-sm text-white/80 hover:bg-white/10 transition-colors"
-              >
-                Settings
-              </button>
               <button
                 onClick={handleLogout}
                 className="w-full text-left px-4 py-2 text-sm text-white/80 hover:bg-white/10 transition-colors flex items-center gap-2"

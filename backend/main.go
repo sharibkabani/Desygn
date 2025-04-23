@@ -38,8 +38,6 @@ func main() {
 	router.POST("/submit", handlers.SubmitHandler)
 	router.GET("/submissions/:userId", handlers.GetUserSubmissions)
 	router.POST("/sync-user", handlers.SyncUserHandler)
-	router.GET("/problems", handlers.GetAllProblemsHandler)
-	router.GET("/problems/:id", handlers.GetProblemByIDHandler)
 
 	// Add a route to test DB connection
 	router.GET("/dbtest", func(c *gin.Context) {

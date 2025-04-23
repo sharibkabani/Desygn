@@ -34,32 +34,39 @@ type GeminiResponse struct {
 }
 
 func JudgeSubmission(problemTitle, problemDesc, solutionText string) (string, error) {
-	fmt.Println("Using Gemini API key (first 5 chars):", os.Getenv("GEMINI_API_KEY"))
-
 	prompt := fmt.Sprintf(`
-You are an expert system design interviewer.
-
-Evaluate the following system design problem and user solution:
-
-Problem Title: %s
-
-Problem Description:
-%s
-
-User's Solution:
-%s
-
-Please provide a score out of 60, followed by strengths and improvement areas.
-
-Respond in this format:
-Score: X/60
-
-Strengths:
-- ...
-
-Improvements:
-- ...
-`, problemTitle, problemDesc, solutionText)
+	You are an experienced system design interviewer evaluating a candidate's solution.
+	
+	Evaluate the following system design solution based on architectural principles, scalability thinking, and overall approach.
+	
+	Problem Title: %s
+	
+	Problem Description:
+	%s
+	
+	User's Solution:
+	%s
+	
+	Provide a balanced evaluation in JSON format with the following structure:
+	{
+	  "score": <integer between 0-100>,
+	  "strengths": ["strength1", "strength2", "strength3"...],
+	  "improvements": ["improvement1", "improvement2", "improvement3"...]
+	}
+	
+	Guidelines for your evaluation:
+	- Focus primarily on architectural choices, system thinking, and problem-solving approach
+	- Consider trade-offs and assumptions made by the candidate
+	- Evaluate understanding of core distributed systems principles
+	- Include some feedback on technology choices, but don't overemphasize specific technology selection
+	- Be encouraging and educational rather than overly critical
+	- Provide 3-5 specific strengths and 2-4 areas for improvement
+	- Score 70+ for solutions showing solid understanding with some gaps
+	- Score 80+ for comprehensive solutions with good justification
+	- Score 90+ for exceptional solutions with deep insight
+	
+	Return only valid JSON without explanation or additional text.
+	`, problemTitle, problemDesc, solutionText)
 
 	reqBody := ContentRequest{
 		Contents: []Content{
@@ -80,8 +87,6 @@ Improvements:
 	defer resp.Body.Close()
 
 	body, _ := io.ReadAll(resp.Body)
-	fmt.Println("📡 Gemini Raw Response:")
-	fmt.Println(string(body))
 
 	var result GeminiResponse
 	if err := json.Unmarshal(body, &result); err != nil {

@@ -20,12 +20,17 @@ interface Problem {
   is_published: boolean;
   created_at: string;
   updated_at: string;
+  userSubmission?: {
+    id: string;
+    is_draft: boolean;
+  } | null;
 }
 
 interface User {
   avatar_url: string | null;
   full_name: string;
   email: string;
+  id: string;
 }
 
 export default function Problems() {
@@ -45,6 +50,7 @@ export default function Problems() {
 
         if (userData.user) {
           setUser({
+            id: userData.user.id,
             avatar_url:
               userData.user.user_metadata.avatar_url || "/default-avatar.png",
             full_name: userData.user.user_metadata.full_name || "Anonymous",
@@ -67,7 +73,7 @@ export default function Problems() {
               break;
             case "difficulty":
               // Custom sorting for difficulty (easy, medium, hard)
-              query = query.order("difficulty", { ascending: true });
+              query = query.order("difficulty_rank", { ascending: true });
               break;
           }
 
@@ -83,7 +89,24 @@ export default function Problems() {
             return;
           }
 
-          setProblems(problemsData || []);
+          // Fetch user's submissions for these problems
+          const { data: submissionsData } = await supabase
+            .from("submissions")
+            .select("id, problem_id, is_draft")
+            .eq("user_id", userData.user.id);
+
+          // Map submissions to problems
+          const problemsWithSubmissions = problemsData?.map((problem) => {
+            const userSubmission =
+              submissionsData?.find((sub) => sub.problem_id === problem.id) ||
+              null;
+            return {
+              ...problem,
+              userSubmission,
+            };
+          });
+
+          setProblems(problemsWithSubmissions || []);
         }
       } catch (error) {
         console.error("Error:", error);
@@ -97,14 +120,16 @@ export default function Problems() {
 
   const handleFilterChange = (newFilter: string | null) => {
     setFilter(newFilter);
+    setLoading(true);
   };
 
   const handleSortChange = (newSort: "newest" | "oldest" | "difficulty") => {
     setSortBy(newSort);
+    setLoading(true);
   };
 
   if (loading) {
-    return <FullPageLoading />;
+    return <FullPageLoading message="Loading problems..." />;
   }
 
   if (!user) {
@@ -152,7 +177,7 @@ export default function Problems() {
             <div className="relative">
               <Button
                 variant="outline"
-                className="border-white/10 text-white hover:bg-white/10 flex items-center gap-2"
+                className="border-white/10 text-white hover:bg-white/10 flex items-center gap-2 hover:text-white"
                 onClick={() =>
                   document
                     .getElementById("filterDropdown")
@@ -195,7 +220,7 @@ export default function Problems() {
             <div className="relative">
               <Button
                 variant="outline"
-                className="border-white/10 text-white hover:bg-white/10 flex items-center gap-2"
+                className="border-white/10 text-white hover:bg-white/10 flex items-center gap-2 hover:text-white"
                 onClick={() =>
                   document
                     .getElementById("sortDropdown")
@@ -284,6 +309,19 @@ export default function Problems() {
                           New
                         </Badge>
                       )}
+                      {problem.userSubmission && (
+                        <Badge
+                          className={
+                            problem.userSubmission.is_draft
+                              ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                              : "bg-green-500/20 text-green-400 border border-green-500/30"
+                          }
+                        >
+                          {problem.userSubmission.is_draft
+                            ? "In Progress"
+                            : "Completed"}
+                        </Badge>
+                      )}
                     </div>
                     <p className="text-white/70 mt-1 line-clamp-2">
                       {problem.description}
@@ -310,7 +348,12 @@ export default function Problems() {
                     asChild
                   >
                     <Link href={`/problems/${problem.id}`}>
-                      Solve <ArrowRight className="ml-2 w-4 h-4" />
+                      {problem.userSubmission
+                        ? problem.userSubmission.is_draft
+                          ? "Continue"
+                          : "Review"
+                        : "Solve"}{" "}
+                      <ArrowRight className="ml-2 w-4 h-4" />
                     </Link>
                   </Button>
                 </CardContent>

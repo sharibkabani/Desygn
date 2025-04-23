@@ -17,17 +17,6 @@ type Submission struct {
 	UpdatedAt    time.Time       `json:"updated_at"`
 }
 
-type Problem struct {
-	ID          int       `json:"id"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	Difficulty  string    `json:"difficulty"`
-	Tags        []string  `json:"tags"`
-	IsPublished bool      `json:"is_published"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-}
-
 type SyncUserRequest struct {
 	ID            string `json:"id"`
 	Email         string `json:"email"`
