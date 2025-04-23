@@ -1,9 +1,11 @@
 package main
 
 import (
-	"context"
 	"log"
+	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -29,23 +31,8 @@ func main() {
 	router := gin.Default()
 	router.Use(cors.Default())
 
-	// test endpoint
-	router.GET("/test", func(c *gin.Context) {
-		c.JSON(200, gin.H{"message": "working"})
-	})
-
 	// Register your endpoints
 	router.POST("/submit", handlers.SubmitHandler)
-
-	// Add a route to test DB connection
-	router.GET("/dbtest", func(c *gin.Context) {
-		err := db.Conn.Ping(context.Background())
-		if err != nil {
-			c.JSON(500, gin.H{"status": "failed", "error": err.Error()})
-			return
-		}
-		c.JSON(200, gin.H{"status": "success", "message": "DB connected!"})
-	})
 
 	// Start server
 	port := os.Getenv("PORT")
@@ -54,4 +41,26 @@ func main() {
 	}
 	log.Printf("Running on port %s...", port)
 	router.Run(":" + port)
+
+	// Use ListenAndServe to handle graceful shutdown
+	srv := &http.Server{
+		Addr:    ":" + port,
+		Handler: router,
+	}
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Failed to start server: %v", err)
+		}
+	}()
+
+	// Set up graceful shutdown
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	// Close database connection
+	db.Close()
+
+	log.Println("Shutting down server...")
 }

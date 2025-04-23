@@ -18,3 +18,10 @@ func Connect() error {
 	}
 	return nil
 }
+
+func Close() {
+	if Conn != nil {
+		Conn.Close(context.Background())
+	}
+	fmt.Println("Database connection closed.")
+}
