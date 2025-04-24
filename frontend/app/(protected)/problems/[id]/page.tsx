@@ -70,7 +70,7 @@ export default function ProblemDetail() {
   const [markdownContent, setMarkdownContent] = useState<string>("");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [excalidrawContent, setExcalidrawContent] = useState<any>(null);
-  const [isDraft, setIsDraft] = useState<boolean>(true);
+  const [hasEdited, setHasEdited] = useState(false);
 
   const debouncedMarkdown = useDebounce(markdownContent, 1000);
   const debouncedDrawing = useDebounce(excalidrawContent, 1000);
@@ -165,7 +165,6 @@ export default function ProblemDetail() {
           .single();
 
         if (submission) {
-          setIsDraft(submission.is_draft);
           setMarkdownContent(submission.solution_text || "");
           if (submission.diagram_data) {
             try {
@@ -188,20 +187,22 @@ export default function ProblemDetail() {
   }, [params.id, router]);
 
   useEffect(() => {
-    if (!user || !problem || !isDraft) return;
+    if (!user || !problem || !hasEdited) return;
     if (debouncedMarkdown === "" && !debouncedDrawing) return;
 
     const saveDraft = async () => {
       try {
         console.log("Auto-saving draft...");
 
+        const diagramData = debouncedDrawing || { elements: [] };
+
         const { error } = await supabase.from("submissions").upsert(
           {
             user_id: user.id,
             problem_id: problem.id,
             solution_text: debouncedMarkdown,
-            diagram_data: debouncedDrawing,
-            is_draft: true,
+            diagram_data: diagramData,
+            is_draft: hasEdited,
             updated_at: new Date().toISOString(),
           },
           { onConflict: "user_id,problem_id" }
@@ -218,7 +219,7 @@ export default function ProblemDetail() {
     };
 
     saveDraft();
-  }, [debouncedMarkdown, debouncedDrawing, user, problem, isDraft]);
+  }, [debouncedMarkdown, debouncedDrawing, user, problem, hasEdited]);
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty?.toLowerCase()) {
@@ -304,7 +305,10 @@ export default function ProblemDetail() {
               <div className="flex-1 overflow-y-auto">
                 <Textarea
                   value={markdownContent}
-                  onChange={(e) => setMarkdownContent(e.target.value)}
+                  onChange={(e) => {
+                    setMarkdownContent(e.target.value);
+                    setHasEdited(true);
+                  }}
                   className="w-full h-full p-4 bg-[#121419] text-white resize-none focus:outline-none font-mono text-sm"
                   placeholder="Write your solution here using Markdown..."
                   spellCheck="false"
@@ -346,7 +350,7 @@ export default function ProblemDetail() {
                       },
                     });
 
-                    if (newStr !== oldStr) {
+                    if (newStr !== oldStr && !hasEdited) {
                       setExcalidrawContent(newData);
                     }
                   }}
