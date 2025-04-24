@@ -19,7 +19,9 @@
 - **Storage**: JSON (Excalidraw diagrams), Markdown (text)
 
 ## DEMO
-https://github.com/user-attachments/assets/8dbb0e2e-dca6-4f06-b1fe-65907611f7d8
+https://github.com/user-attachments/assets/d32dfc36-f809-4f43-8818-7f2b0f6384b0
+
+
 
 
 
