@@ -70,6 +70,7 @@ export default function ProblemDetail() {
   const [markdownContent, setMarkdownContent] = useState<string>("");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [excalidrawContent, setExcalidrawContent] = useState<any>(null);
+  const [isDraft, setIsDraft] = useState<boolean>(true);
 
   const debouncedMarkdown = useDebounce(markdownContent, 1000);
   const debouncedDrawing = useDebounce(excalidrawContent, 1000);
@@ -159,12 +160,12 @@ export default function ProblemDetail() {
           .select("solution_text, diagram_data, is_draft")
           .eq("problem_id", params.id)
           .eq("user_id", userData.user.id)
-          .order("created_at", { ascending: false }) // Get the latest submission
+          .order("created_at", { ascending: false })
           .limit(1)
           .single();
 
         if (submission) {
-          // Load the previous submission data
+          setIsDraft(submission.is_draft);
           setMarkdownContent(submission.solution_text || "");
           if (submission.diagram_data) {
             try {
@@ -174,7 +175,6 @@ export default function ProblemDetail() {
             }
           }
         } else {
-          // No previous submission, load default content
           setMarkdownContent(defaultMarkdownContent);
         }
       } catch (e) {
@@ -188,25 +188,14 @@ export default function ProblemDetail() {
   }, [params.id, router]);
 
   useEffect(() => {
-    if (!user || !problem) return;
+    if (!user || !problem || !isDraft) return;
+    if (debouncedMarkdown === "" && !debouncedDrawing) return;
 
     const saveDraft = async () => {
       try {
-        // Check if the current submission is a draft
-        const { data: existingSubmission } = await supabase
-          .from("submissions")
-          .select("is_draft")
-          .eq("problem_id", problem.id)
-          .eq("user_id", user.id)
-          .single();
+        console.log("Auto-saving draft...");
 
-        if (existingSubmission && !existingSubmission.is_draft) {
-          // Do not overwrite completed submissions
-          return;
-        }
-
-        // Save or update the draft
-        await supabase.from("submissions").upsert(
+        const { error } = await supabase.from("submissions").upsert(
           {
             user_id: user.id,
             problem_id: problem.id,
@@ -217,13 +206,19 @@ export default function ProblemDetail() {
           },
           { onConflict: "user_id,problem_id" }
         );
+
+        if (error) {
+          console.error("Auto-save error:", error?.message || error);
+        } else {
+          console.log("Draft saved successfully");
+        }
       } catch (e) {
         console.error("Auto-save failed:", e);
       }
     };
 
     saveDraft();
-  }, [debouncedMarkdown, debouncedDrawing, user, problem]);
+  }, [debouncedMarkdown, debouncedDrawing, user, problem, isDraft]);
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty?.toLowerCase()) {
@@ -289,7 +284,7 @@ export default function ProblemDetail() {
                   userId: user.id,
                   problemId: problem.id,
                   solutionText: markdownContent,
-                  excalidrawContent: excalidrawContent ?? [],
+                  excalidrawContent: excalidrawContent,
                 })
               }
             >
